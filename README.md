@@ -20,6 +20,10 @@
 
 Simple-Backup es un script interactivo que copia tus carpetas personales (Documentos, Música, Imágenes, Vídeos, Descargas...) a otro disco —normalmente uno externo, aunque también puede ser un segundo disco interno— usando `rsync`. No crea una imagen del disco: copia archivos reales, navegables, que puedes abrir directamente desde el explorador de archivos en cualquier PC. Además, deja crear snapshots completos del sistema con Timeshift y programar todo por cron, sin tener que tocar la terminal cada vez.
 
+<img width="699" height="507" alt="1menu-simple-backup" src="https://github.com/user-attachments/assets/ead19b77-298e-46dc-957f-c8d2eb1706ca" />
+<img width="700" height="505" alt="2menu-rutas-simple-backup" src="https://github.com/user-attachments/assets/4bdaae4c-e0fb-40a3-a1df-e152cf031478" />
+<img width="708" height="509" alt="3menu-copiaauto-simple-backup" src="https://github.com/user-attachments/assets/ef90aa84-5f5e-4f46-8042-3a6184772a37" />
+
 ## ¿Por qué este script y no otra cosa?
 
 Hay dos formas habituales de hacer copias de seguridad en Linux: crear una **imagen del disco** (con `dd`, Clonezilla...) o usar una herramienta de **snapshots del sistema** (Timeshift, Déjà Dup...). Ambas son útiles, pero ninguna resuelve bien el caso más común: *"quiero que mis fotos, documentos y música estén también en el disco externo, tal cual, por si el ordenador muere mañana"*.
