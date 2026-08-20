@@ -5,7 +5,7 @@
 <h1 align="center">Simple-Backup</h1>
 
 <p align="center">
-  Copias de seguridad incrementales para Linux Mint (Cinnamon), en un único script de bash.
+  Copias de seguridad incrementales para Linux Mint (Cinnamon), en un único script de bash. Fácil de usar y programar para que tus archivos (fotos, documentos, programas, etc) siempre esten guardados y resincronizados con el origen de archivos que se pretende copiar. Nunca te equivocarás con los archivos que tienes que actualizar en tu disco externo, nunca tendrás que pensar en aquel archivo que modificaste pero que no has actualizado en tu carpeta de copia de seguridad del disco externo. Todo eso y más resuelve este pequeño programa
 </p>
 
 <p align="center">
