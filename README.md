@@ -182,4 +182,4 @@ Las aportaciones son bienvenidas. Antes de abrir una issue o un pull request, é
 
 ---
 
-Hecho por **Filonux**.
+Hecho por **[Filonux](https://github.com/filonux)**.
