@@ -5,7 +5,7 @@
 <h1 align="center">Simple-Backup</h1>
 
 <p align="center">
-  Incremental backups for Linux Mint (Cinnamon), in a small Bash project. Keep your files (photos, documents, programs...) always synced to your external drive, without ever having to guess what's left to update.
+  Incremental backups for Linux Mint (Cinnamon), in a small Bash project. Keep your files (photos, documents, programs...) always synced to your external drive (or internal), without ever having to guess what's left to update.
 </p>
 
 <p align="center">
