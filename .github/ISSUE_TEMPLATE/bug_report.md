@@ -1,33 +1,33 @@
 ---
-name: Reporte de error
-about: Algo no funciona como debería
+name: Bug report
+about: Something is not working as expected
 title: "[BUG] "
 labels: bug
 assignees: ''
 ---
 
-## Descripción del problema
+## Problem description
 
-Explica claramente qué está pasando.
+Explain clearly what is happening.
 
-## Pasos para reproducirlo
+## Steps to reproduce
 
-## Comportamiento esperado
+## Expected behavior
 
-Qué debería haber pasado en su lugar.
+What should have happened instead.
 
-## Capturas de pantalla
+## Screenshots
 
-Si aplica, añade capturas que ayuden a explicar el problema.
+If applicable, add screenshots that help explain the problem.
 
-## Entorno
+## Environment
 
-## Mensajes de error / salida de terminal
+## Error messages / terminal output
 
 ```
-(pega aquí la salida)
+(paste the output here)
 ```
 
-## Contexto adicional
+## Additional context
 
-Cualquier otro detalle que pueda ser útil (elemento concreto que falla, si es de usuario/sistema/systemd/cron, etc.).
+Any other detail that may be useful (specific failing component, whether it is user/system/systemd/cron related, etc.).
