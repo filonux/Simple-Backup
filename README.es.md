@@ -22,9 +22,12 @@
 
 Simple-Backup es un script interactivo que copia tus carpetas personales (Documentos, Música, Imágenes, Vídeos, Descargas...) a otro disco —normalmente externo, aunque también vale uno interno— usando `rsync`. No crea una imagen: copia archivos reales y navegables, que puedes abrir desde el explorador de archivos de cualquier PC. También permite crear snapshots completos del sistema con Timeshift y programarlo todo por cron, sin tocar la terminal cada vez.
 
-<img width="699" height="507" alt="1menu-simple-backup" src="https://github.com/user-attachments/assets/ead19b77-298e-46dc-957f-c8d2eb1706ca" />
-<img width="700" height="505" alt="2menu-rutas-simple-backup" src="https://github.com/user-attachments/assets/4bdaae4c-e0fb-40a3-a1df-e152cf031478" />
-<img width="708" height="509" alt="3menu-copiaauto-simple-backup" src="https://github.com/user-attachments/assets/ef90aa84-5f5e-4f46-8042-3a6184772a37" />
+<img width="649" height="444" alt="menu-simple-backup-es" src="https://github.com/user-attachments/assets/75472f59-70ad-4efd-b395-bece5b13db6b" />
+<img width="653" height="439" alt="config-simple-backup-es" src="https://github.com/user-attachments/assets/8e557bc9-7ba0-4fbf-b524-c810433b1027" />
+<img width="650" height="443" alt="simple-backup-automatic-backup-es" src="https://github.com/user-attachments/assets/4f84145e-b1ec-42d4-8e8a-ec40ded74966" />
+<img width="655" height="446" alt="simple-backup-config-check-es" src="https://github.com/user-attachments/assets/6aab7373-e7f3-4088-9cf1-4e5e7d05c2f2" />
+<img width="653" height="440" alt="simple-backup-mirror-delete-es" src="https://github.com/user-attachments/assets/79189082-da84-4ab7-9083-e24df23fa277" />
+<img width="652" height="446" alt="simple-backup-quick-help-es" src="https://github.com/user-attachments/assets/a2fcd702-773a-48a7-bf1a-be70b7cdf766" />
 
 ## ¿Por qué este script y no otra cosa?
 
