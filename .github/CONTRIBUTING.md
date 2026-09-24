@@ -1,16 +1,16 @@
-# Cómo contribuir
+# Contributing
 
-Gracias por el interés. Esta guía resume lo básico para que tu aportación se pueda revisar y aceptar rápido.
+Thanks for your interest. This guide summarizes the basics so your contribution can be reviewed and accepted quickly.
 
-## Antes de escribir código
+## Before writing code
 
-- Para cambios grandes o que cambien el comportamiento actual, abre primero un issue (usando la plantilla de solicitud de función) para discutir el enfoque antes de invertir tiempo en la implementación.
-- Para errores puntuales o mejoras pequeñas, puedes ir directo al *pull request*.
+- For large changes or changes that alter current behavior, open an issue first (using the feature request template) to discuss the approach before investing time in the implementation.
+- For small fixes or improvements, you can go straight to a *pull request*.
 
-## Enviar el Pull Request
+## Sending a Pull Request
 
-## Reportar errores o proponer ideas
+## Reporting bugs or proposing ideas
 
-Usa las plantillas de issue del repositorio; se abren automáticamente al crear uno nuevo. Cuanto más contexto (distro, versión de `zenity`, pasos exactos), más rápido se puede diagnosticar.
+Use the repository issue templates; they open automatically when you create a new issue. The more context you provide (distro, `zenity` version, exact steps), the faster the problem can be diagnosed.
 
-Para temas de seguridad, no abras un issue público — consulta [`SECURITY.md`](SECURITY.md).
+For security issues, do not open a public issue — see [`SECURITY.md`](SECURITY.md).
