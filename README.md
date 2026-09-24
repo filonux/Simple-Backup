@@ -1,185 +1,182 @@
 <p align="center">
-  <img src="assets/icon.png" alt="Icono de Simple-Backup" width="140">
+  <img src="assets/icon.png" alt="Simple-Backup icon" width="140">
 </p>
 
 <h1 align="center">Simple-Backup</h1>
 
 <p align="center">
-  Copias de seguridad incrementales para Linux Mint (Cinnamon), en un único script de bash. Fácil de usar y programar para que tus archivos (fotos, documentos, programas, etc) siempre esten guardados y resincronizados con el origen de archivos que se pretende copiar. Nunca te equivocarás con los archivos que tienes que actualizar en tu disco externo, nunca tendrás que pensar en aquel archivo que modificaste pero que no has actualizado en tu carpeta de copia de seguridad del disco externo. Todo eso y más resuelve este pequeño programa
+  Incremental backups for Linux Mint (Cinnamon), in a small Bash project. Keep your files (photos, documents, programs...) always synced to your external drive, without ever having to guess what's left to update.
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="Licencia GPLv3" src="https://img.shields.io/badge/Licencia-GPLv3-blue.svg"></a>
+  <a href="LICENSE.txt"><img alt="GPLv3 license" src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
   <img alt="Bash" src="https://img.shields.io/badge/bash-%3E%3D4.3-4EAA25?logo=gnubash&logoColor=white">
   <img alt="Linux Mint" src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?logo=linuxmint&logoColor=white">
 </p>
 
-> **Nota sobre el idioma:** este proyecto (script, menús, documentación) está en español. Si veo interés de gente que lo necesite en inglés, prepararé una traducción — más detalles al final del documento, en [Roadmap](#roadmap).
+> **Language:** the project is available in English and Spanish. On a fresh configuration, the script uses Spanish when the system locale is Spanish; otherwise it defaults to English. Press **`l`** or **`L`** in the main menu to switch between English and Spanish. The selected language is saved for future runs.
+>
+> [Leer en español / Read in Spanish](README.es.md)
 
 ---
 
-Simple-Backup es un script interactivo que copia tus carpetas personales (Documentos, Música, Imágenes, Vídeos, Descargas...) a otro disco —normalmente uno externo, aunque también puede ser un segundo disco interno— usando `rsync`. No crea una imagen del disco: copia archivos reales, navegables, que puedes abrir directamente desde el explorador de archivos en cualquier PC. Además, deja crear snapshots completos del sistema con Timeshift y programar todo por cron, sin tener que tocar la terminal cada vez.
+Simple-Backup is an interactive script that copies your personal folders (Documents, Music, Pictures, Videos, Downloads...) to another drive —usually an external one, although a second internal drive works too— using `rsync`. It does not create a disk image: it copies real, browsable files that you can open directly from the file manager on any PC. It also lets you create full-system snapshots with Timeshift and schedule everything with cron, without having to touch the terminal every time.
 
-<img width="699" height="507" alt="1menu-simple-backup" src="https://github.com/user-attachments/assets/ead19b77-298e-46dc-957f-c8d2eb1706ca" />
-<img width="700" height="505" alt="2menu-rutas-simple-backup" src="https://github.com/user-attachments/assets/4bdaae4c-e0fb-40a3-a1df-e152cf031478" />
-<img width="708" height="509" alt="3menu-copiaauto-simple-backup" src="https://github.com/user-attachments/assets/ef90aa84-5f5e-4f46-8042-3a6184772a37" />
+<img width="652" height="439" alt="menu-simple-backup-en" src="https://github.com/user-attachments/assets/7824e06e-e108-4956-976c-cfc0648a0027" />
+<img width="652" height="442" alt="config-simple-backup-en" src="https://github.com/user-attachments/assets/2797a38e-a008-4a3c-8271-84c3bf279060" />
+<img width="650" height="435" alt="simple-backup-automatic-backup-en" src="https://github.com/user-attachments/assets/783dce17-e62d-4bee-b03a-b0537ede49f5" />
+<img width="656" height="450" alt="simple-backup-config-check-en" src="https://github.com/user-attachments/assets/37694218-1faa-425a-951f-0b48cd79bf3f" />
+<img width="652" height="441" alt="simple-backup-mirror-delete-en" src="https://github.com/user-attachments/assets/f40c6aa5-67e2-4af8-b530-d4ad7df29fe3" />
+<img width="654" height="432" alt="simple-backup-quick-help-en" src="https://github.com/user-attachments/assets/82ca2164-43ab-4952-ad5d-462854c5b5b6" />
 
-## ¿Por qué este script y no otra cosa?
+## Why this script instead of something else?
 
-Hay dos formas habituales de hacer copias de seguridad en Linux: crear una **imagen del disco** (con `dd`, Clonezilla...) o usar una herramienta de **snapshots del sistema** (Timeshift, Déjà Dup...). Ambas son útiles, pero ninguna resuelve bien el caso más común: *"quiero que mis fotos, documentos y música estén también en el disco externo, tal cual, por si el ordenador muere mañana"*.
+Backups on Linux usually mean either a **disk image** (`dd`, Clonezilla...) or **system snapshots** (Timeshift, Déjà Dup...). Neither handles the most common case well —having your photos, documents and music also on the external drive, as-is, in case your computer dies tomorrow— because you can't open an image to grab a single file without restoring the whole thing. Simple-Backup uses `rsync` to copy only what's new or modified on each run, leaving the same folder structure on the external drive as you have at home: plug the drive into any PC and your files are right there, with no software needed to recover them.
 
-Con una imagen no puedes entrar y coger un solo archivo sin restaurarla entera. Simple-Backup, en cambio, usa `rsync` para copiar **solo lo nuevo o modificado** en cada ejecución, dejando en el disco externo la misma estructura de carpetas que tienes en casa. Enchufas el disco en cualquier ordenador y ahí están tus archivos, sin depender de ningún software para recuperarlos.
+On top of a plain `rsync -a`, the script adds:
 
-Lo que aporta el script encima de un simple `rsync -a` a mano:
+- **It never deletes anything by accident.** It never removes files from the destination, even if you delete them from the source (mirror mode is optional and must be turned on deliberately).
+- **It avoids the usual mistakes:** it warns about infinite backups (destination inside a source), an unmounted external drive, a destination on the same disk as your home folder, or source folders with the same name that could get mixed together.
+- **It adapts to the destination drive**, adjusting `rsync` automatically for FAT32, exFAT or NTFS.
+- **It combines file backup and system snapshots** from the same menu.
+- **Everything in one small project:** no unusual dependencies, no `.deb` package, just execution permissions.
 
-- **No borra nada por accidente.** Por defecto nunca elimina archivos del destino aunque los borres en el origen (el modo espejo es opcional y hay que activarlo a propósito).
-- **Evita los despistes típicos**: te avisa si el destino está dentro de una carpeta de origen (backup infinito), si el disco externo no está montado, si el destino resulta ser el mismo disco que tu carpeta personal, o si dos carpetas de origen se llaman igual y podrían mezclarse.
-- **Se adapta al disco de destino.** Si formateas el disco externo en FAT32, exFAT o NTFS (habitual si también lo usas en Windows), el script ajusta automáticamente las opciones de `rsync` para no llenar la pantalla de errores de permisos que no son reales.
-- **Combina backup de archivos + snapshot del sistema** desde el mismo menú, en vez de tener que aprender y configurar dos herramientas por separado.
-- **Todo en un archivo.** Sin dependencias raras, sin instalar un paquete .deb: descargas el `.sh`, le das permisos y ya está.
+## Table of contents
 
-## Tabla de contenidos
-
-- [¿Por qué este script y no otra cosa?](#por-qué-este-script-y-no-otra-cosa)
-- [Funciones](#funciones)
-- [Instalación](#instalación)
-- [Uso](#uso)
-- [Compatibilidad](#compatibilidad)
-- [Crea un lanzador de escritorio con Scriptya](#crea-un-lanzador-de-escritorio-con-scriptya)
-- [Dónde guarda sus cosas](#dónde-guarda-sus-cosas)
+- [Why this script instead of something else?](#why-this-script-instead-of-something-else)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Compatibility](#compatibility)
+- [Where it stores its files](#where-it-stores-its-files)
+- [Language](#language)
 - [Roadmap](#roadmap)
-- [Licencia](#licencia)
-- [Contribuir](#contribuir)
+- [License](#license)
+- [Contributing](#contributing)
 
-## Funciones
+## Features
 
-### Copia de seguridad de archivos personales
+### Personal file backup
 
-- **Detección automática de carpetas.** Usa `xdg-user-dirs`, así que reconoce Documentos, Música, Imágenes, Vídeos, Descargas, Escritorio, Plantillas y Público en el idioma que tengas configurado en el sistema.
-- **Añadir carpetas a mano**, con un selector gráfico clásico (si tienes `zenity` instalado) o escribiendo la ruta directamente si no.
-- **Aviso de solapamiento.** Si intentas añadir una carpeta que ya está contenida en otra (o al revés), o que apunta al mismo sitio por un enlace simbólico, el script te avisa antes de duplicar contenido.
-- **Exclusiones configurables**, con una lista por defecto ya sensata (`.cache`, `*.tmp`, `*.part`, `*.crdownload`, `*.download`, `node_modules`, `.thumbnails`, `lost+found`) que puedes ampliar o editar desde el propio menú.
-- **Sin mezclar carpetas con el mismo nombre.** Si configuras dos orígenes distintos que se llaman igual (por ejemplo, dos carpetas "Proyectos" en rutas diferentes), el script renombra automáticamente cada una en el destino (anteponiendo la carpeta padre) para que no se mezcle su contenido, y te avisa de qué carpeta quedó guardada con qué nombre.
-- **Se adapta al sistema de archivos del destino**, ajustando las opciones de `rsync` si el disco está en FAT32, exFAT o NTFS (sistemas que no soportan permisos ni propietario de Unix), para que no aparezcan avisos de "operación no permitida" por algo que no es un fallo real. Si el destino es FAT32, también avisa antes de copiar si hay archivos de más de 4 GiB (ese formato no los admite), y los excluye de forma limpia para que la copia no se quede a medias.
-- **Detección de unidades montadas**, internas y externas, usando `lsblk`: muestra etiqueta, tamaño y de qué tipo es cada una. Eliges la que quieras con un número, escribiendo la ruta a mano, o con el selector gráfico si tienes `zenity`.
-- **Modo espejo opcional (`--delete`)**, desactivado por defecto. Actívalo solo si quieres que el destino sea una copia exacta del origen, borrados incluidos.
-- **Comprobaciones antes de copiar**: destino accesible, con permisos de escritura, que no esté dentro de un origen, que no sea el mismo disco que tu carpeta personal, y aviso si queda poco espacio libre. (Al elegir el destino, además, avisa si el disco no parece extraíble, por si has confundido una partición interna.)
-- **Bloqueo de ejecución.** Si lanzas una copia y ya hay otra en marcha (por ejemplo, una programada por cron), el script lo detecta y no las deja pisarse.
-- **Barra de progreso** por carpeta durante la copia, y un resumen final que separa los avisos sin importancia (por ejemplo, un archivo que cambió mientras se copiaba) de los errores reales, en vez de tratarlos todos igual.
-- **Notificaciones de escritorio** al terminar (correcto, con avisos, o con errores), también en las ejecuciones automáticas por cron.
+- **Automatic folder detection** via `xdg-user-dirs`: recognizes Documents, Music, Pictures, Videos, Downloads, Desktop, Templates and Public in your system's language.
+- **Add folders manually**, with a graphical picker (`zenity`) or by typing the path.
+- **Overlap warning** if a folder is already contained in another one, or points to the same place through a symbolic link.
+- **Configurable exclusions** (`.cache`, `*.tmp`, `*.part`, `*.crdownload`, `*.download`, `node_modules`, `.thumbnails`, `lost+found` by default), editable from the menu.
+- **Same-name folders don't get mixed up:** if two sources share a name, each is renamed in the destination by prefixing its parent folder, and the script tells you which name was used.
+- **Adapted to the destination filesystem:** adjusts `rsync` options on FAT32, exFAT or NTFS to avoid false permission warnings, and on FAT32 cleanly excludes files over 4 GiB.
+- **Mounted-drive detection** (`lsblk`), with label, size and type; choose by number, typed path or graphical picker.
+- **Optional mirror mode** (`--delete`, off by default) so the destination is an exact copy of the source, deletions included.
+- **Pre-copy checks:** destination accessible and writable, not inside a source nor on the same disk as your home folder, enough free space, and a warning if the drive doesn't look removable.
+- **Execution lock** so two backups (say, manual and scheduled) don't collide.
+- **Progress bar** per folder, and a final summary that separates minor warnings from real errors.
+- **Desktop notifications** on completion (success, warnings or errors), including automatic cron runs.
 
-### Snapshots del sistema completo (Timeshift)
+### Full system snapshots (Timeshift)
 
-Aparte de tus archivos personales, el menú incluye acceso directo a [Timeshift](https://github.com/linuxmint/timeshift) para snapshots del sistema (el sistema operativo entero, no tus documentos): crear una snapshot al momento, ver las existentes, abrir la interfaz gráfica, o configurar en qué disco/partición se guardan. Si no tienes Timeshift instalado, el script se ofrece a instalarlo.
+The menu gives direct access to [Timeshift](https://github.com/linuxmint/timeshift) for full-system snapshots (the operating system, not your personal files): create one now, list existing snapshots, open its graphical interface, or choose the disk/partition where they're stored. If it's not installed, the script offers to install it.
 
-### Automatización
+### Automation
 
-- **Programación por cron** desde el propio menú: copia diaria (eliges la hora) o semanal (día y hora), sin editar el crontab a mano. También puedes quitar la tarea programada desde ahí mismo.
-- **Modo `--auto`**: ejecuta el backup ya configurado sin abrir ningún menú, pensado para lanzarse solo por cron. Si el disco externo no está conectado o falta configuración, no falla en silencio: lo deja registrado en el log y (si hay sesión de escritorio) manda una notificación.
+- **Cron scheduling** from the menu (daily or weekly, with hour and day), without editing the crontab by hand; the task can also be removed from there.
+- **`--auto` mode:** runs the already-configured backup with no menus, meant for cron. If the drive isn't connected or configuration is missing, it logs it and notifies you if there's a desktop session, instead of failing silently.
 
-### Otras cosas útiles
+### Other useful details
 
-- **Registro (log) de cada ejecución**, consultable desde el menú, con limpieza automática de los más antiguos (se conservan los últimos 90).
-- **Asistente de primer uso**: la primera vez que ejecutas el script, te guía para detectar tus carpetas y elegir el disco de destino, sin tener que buscar la opción en el menú.
-- **Comprobación de dependencias** al arrancar, con opción de instalar automáticamente lo que falte (`rsync`, `xdg-user-dirs`, y opcionalmente `zenity`).
+- **Execution logs**, viewable from the menu, with automatic cleanup of older logs (the latest 90 are kept).
+- **Verify configuration** (option 7): without copying anything, checks that `rsync` is installed, that sources and destination are accessible, the free space, and whether the cron task (if any) will be able to run; it finishes with a summary of whether everything's fine, there are warnings, or there are problems to fix.
+- **First-run wizard** that detects your folders and takes you straight to choosing the destination drive, without hunting for the option in the menu.
+- **Dependency check** at startup, with the option to install missing components automatically (`rsync`, `xdg-user-dirs`, and optionally `zenity`).
 
-## Instalación
+## Installation
 
-**Requisitos:**
+**Requirements:**
 
-| Paquete | Necesario para | ¿Obligatorio? |
+| Package | Used for | Required? |
 |---|---|---|
-| `bash` ≥ 4.3 | Ejecutar el script | Sí |
-| `rsync` | Hacer las copias | Sí |
-| `xdg-user-dirs` | Detectar tus carpetas personales | Sí |
-| `zenity` | Selector gráfico de carpetas | No (si falta, se escriben las rutas a mano) |
-| `libnotify-bin` | Notificaciones de escritorio | No |
-| `timeshift` | Snapshots del sistema | No, solo si usas esa función |
-| `cron` | Copias programadas | No, solo si usas esa función |
+| `bash` ≥ 4.3 | Running the script | Yes |
+| `rsync` | Performing backups | Yes |
+| `xdg-user-dirs` | Detecting personal folders | Yes |
+| `zenity` | Graphical folder picker | No (paths can be entered manually) |
+| `libnotify-bin` | Desktop notifications | No |
+| `timeshift` | System snapshots | No, only if you use that feature |
+| `cron` | Scheduled backups | No, only if you use that feature |
 
-Si te falta algo de lo obligatorio, el propio script lo detecta al arrancar y te ofrece instalarlo con `apt`.
+When a required dependency is missing, the script detects it at startup and offers to install it with `apt`.
 
-**Pasos:**
+**Steps:**
 
 ```bash
 git clone https://github.com/filonux/Simple-Backup.git
-cd simple-backup
+cd Simple-Backup
 chmod +x script/simple-backup.sh
 ./script/simple-backup.sh
 ```
 
-Con eso ya se lanza el asistente de primer uso.
+This launches the first-run wizard.
 
-## Uso
+**Prefer not to rely on the terminal?** [**Scriptya**](https://github.com/filonux/Scriptya), another tool by the same author, lets you launch, install, uninstall and change the icon of Simple-Backup just like any other application, with its own menu and no commands to type. Just point it at this repository's `script/` folder.
 
-**Menú interactivo** (uso normal):
+## Usage
+
+**Interactive menu** (normal use):
 
 ```bash
 ./script/simple-backup.sh
 ```
 
-El menú principal tiene seis opciones: configurar rutas de origen y destino, ejecutar la copia ahora, crear una snapshot del sistema, programar copias automáticas, ver el historial de logs, y activar o desactivar el modo espejo.
+The main menu has seven options: configure source and destination paths, run the backup now, create a system snapshot, schedule automatic backups, view the log history, enable or disable mirror mode, and verify the configuration without copying anything.
 
-**De cero a copias automáticas, paso a paso:**
+**From zero to automatic backups:** the first run launches the first-run wizard, which detects your folders and takes you straight to choosing the destination drive from a list of mounted drives. With that configured, option 2 runs the first backup, and option 4 only asks for frequency (daily or weekly), hour and, if applicable, day, to schedule it in the crontab for you. From then on you go straight to the main menu, and scheduled backups run on their own, notifying you by desktop notification of each result — all without writing a line of `rsync` or touching the crontab by hand.
 
-1. **Primera ejecución.** Al no encontrar configuración previa, el script lanza el asistente de primer uso él solo, sin que tengas que buscar nada en el menú. Pregunta si quieres detectar tus carpetas personales automáticamente (Documentos, Música, Imágenes...) y, si dices que sí, te lleva directo a elegir el disco de destino de una lista de unidades montadas (con etiqueta, tamaño, y si son internas o externas).
-2. **Primera copia.** Ya en el menú principal, con origen y destino configurados, la opción 2 lanza la copia: el script comprueba que el destino esté accesible, con permisos de escritura y espacio suficiente, y copia carpeta por carpeta con una barra de progreso.
-3. **Automatizar.** Si quieres que se repita sola, la opción 4 solo pide la frecuencia (diaria o semanal), la hora y, si es semanal, el día: el script añade la tarea al crontab por ti, sin que tengas que tocarlo a mano.
-4. **A partir de ahí.** Cada vez que abras el script entras directo al menú principal —el asistente no vuelve a aparecer—, y las copias programadas corren solas en segundo plano, avisándote por notificación de escritorio de cómo fue cada una.
-
-En resumen: clonas el repositorio, contestas un par de preguntas y eliges el disco de una lista numerada. En un par de minutos tienes copias automáticas funcionando, sin haber escrito una línea de `rsync` ni haber tocado el crontab a mano.
-
-**Otros comandos:**
+**Other commands:**
 
 ```bash
-./script/simple-backup.sh --auto     # Ejecuta el backup ya configurado, sin menús (para cron)
-./script/simple-backup.sh --version  # Muestra la versión instalada
-./script/simple-backup.sh --help     # Muestra la ayuda
+./script/simple-backup.sh --auto     # Run the configured backup without menus (for cron)
+./script/simple-backup.sh --version  # Show the installed version
+./script/simple-backup.sh --help     # Show the help
 ```
 
-No hace falta que llames tú mismo a `--auto`: si programas una copia desde el menú (opción 4), el script se encarga de añadir la línea correspondiente al crontab.
+You do not need to call `--auto` yourself: when you schedule a backup from the menu (option 4), the script creates the corresponding cron entry for you.
 
-## Compatibilidad
+## Compatibility
 
-Desarrollado y probado en **Linux Mint 22.3 (Cinnamon)**. Al ser bash + `rsync` + herramientas estándar de GNU/Linux, debería funcionar sin cambios en cualquier distribución basada en Debian/Ubuntu (otras ediciones de Mint, Ubuntu, Pop!_OS, etc.), incluso con otros entornos de escritorio: las partes que dependen de Cinnamon en concreto son mínimas (principalmente los iconos de las notificaciones).
+Developed and tested on **Linux Mint 22.3 (Cinnamon)**. Since it's built on bash, `rsync` and standard GNU/Linux tools, it should work unchanged on any Debian/Ubuntu-based distribution (other Mint editions, Ubuntu, Pop!_OS...) and with other desktop environments, too — what's Cinnamon-specific is mostly just the notification icons. The one catch is that automatic dependency installation uses `apt`: on distributions that don't use it (Fedora, Arch...) you'll need to install `rsync`, `xdg-user-dirs` and, if you want them, `zenity` and `timeshift` yourself; the rest of the script works the same.
 
-Un matiz: la instalación *automática* de dependencias que falten usa `apt`, así que en distribuciones que no lo usen (Fedora, Arch...) tendrás que instalar tú mismo `rsync`, `xdg-user-dirs` y, si quieres, `zenity` y `timeshift` con el gestor de paquetes correspondiente. Una vez instalados, el resto del script funciona igual.
+## Where it stores its files
 
-## Crea un lanzador de escritorio con Scriptya
+Simple-Backup does not touch anything outside your home folder except the destination drive you explicitly choose:
 
-Simple-Backup es un script, así que por defecto se lanza desde la terminal. Si prefieres tenerlo como una aplicación normal, con su propio icono en el menú de Cinnamon y/o en el escritorio, puedes usar [**Scriptya**](https://github.com/filonux/Scriptya), otra herramienta del mismo autor.
-
-Scriptya convierte cualquier script en una aplicación independiente, con icono propio, integrada en el menú y/o el escritorio. Y de paso, desde ese mismo lanzador puedes volver a abrir Scriptya en cualquier momento para actualizar el script envuelto o desinstalar la aplicación, sin líneas de comandos.
-
-## Dónde guarda sus cosas
-
-Simple-Backup no toca nada fuera de tu carpeta personal salvo el propio disco de destino que tú elijas:
-
-| Qué | Dónde |
+| What | Where |
 |---|---|
-| Configuración (carpetas, destino, exclusiones...) | `~/.config/simple-backup/config.conf` |
-| Logs de cada copia | `~/.local/share/simple-backup/logs/` |
-| Bloqueo de ejecución | `~/.config/simple-backup/backup.lock` |
+| Configuration (folders, destination, exclusions...) | `~/.config/simple-backup/config.conf` |
+| Backup logs | `~/.local/share/simple-backup/logs/` |
+| Execution lock | `~/.config/simple-backup/backup.lock` |
 
-El archivo de configuración se genera y se sobrescribe automáticamente desde el menú: no hace falta (ni se recomienda) editarlo a mano.
+The configuration file is generated and overwritten automatically from the menu; there is no need (and it is not recommended) to edit it by hand.
+
+## Language
+
+Language selection is independent from the system locale: on a fresh configuration, Simple-Backup checks `LC_ALL`, `LC_MESSAGES` and `LANG`, in that order, and starts in Spanish only if it detects a Spanish locale (`es`, `es_ES`, `es-ES`...); any other case starts in English. The **`l`/`L`** shortcut in the main menu switches between the two and saves the choice in `UI_LANGUAGE` (inside `~/.config/simple-backup/config.conf`), which then overrides automatic detection; existing configurations without that field behave as `auto`.
+
+Code comments are in English; the interface and documentation are translated.
+
+### Tests
+
+Includes a regression suite focused on behavior contracts: language catalogs, locale precedence, real `rsync` behavior, exclusions, mirror deletion, locking, cron integration, Timeshift helpers and exit-code classification, among others — with temporary fixtures and deterministic mocks so each failure points to a specific contract. Run it with `bash tests/test.sh`; `bash tests/mutation.sh` checks that intentional regressions (language switching, menu wording, exclusions, mirror deletion...) are actually caught.
 
 ## Roadmap
 
-Nada urgente, pero algunas ideas para cuando haya tiempo (o interés de la gente que lo use):
+- [x] Translate the interface into English — the project started Spanish-only; it is now available in both Spanish and English (see [Language](#language)).
+- [ ] Possible optional `.deb` package, for people who prefer installing and updating with `apt` instead of cloning the repository. The standalone `.sh` will continue to work for anyone who prefers it.
 
-- [ ] **Versión en inglés** del script y de este README, si veo que hay gente fuera del ámbito hispanohablante interesada. Si es tu caso, abre una issue y así sé que merece la pena priorizarlo.
-- [ ] **Paquete `.deb`** opcional, para quien prefiera instalar y actualizar con `apt` en vez de clonar el repositorio. El `.sh` suelto seguirá funcionando igual para quien lo prefiera así.
-- [ ] Alternativa a cron basada en `systemd --user timers`, para quien prefiera no depender de cron.
-- [ ] Soporte para más de un disco de destino configurado a la vez.
+## License
 
-## Licencia
+Published under the **GNU GPLv3** license. See [LICENSE.txt](LICENSE.txt) for the full text.
 
-Publicado bajo licencia **GNU GPLv3**. Consulta el archivo [LICENSE](LICENSE) para el texto completo.
+## Contributing
 
-## Contribuir
-
-Las aportaciones son bienvenidas. Antes de abrir una issue o un pull request, échale un vistazo a [CONTRIBUTING.md](.github/CONTRIBUTING.md) y al [código de conducta](.github/CODE_OF_CONDUCT.md). Para reportar un fallo o pedir una función nueva, usa las plantillas correspondientes en [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). Si encuentras un problema de seguridad, sigue el proceso descrito en [SECURITY.md](.github/SECURITY.md) en vez de abrir una issue pública.
+Contributions are welcome. Before opening an issue or pull request, take a look at [CONTRIBUTING.md](.github/CONTRIBUTING.md) and the [code of conduct](.github/CODE_OF_CONDUCT.md). To report a bug or request a new feature, use the appropriate templates in [`.github/ISSUE_TEMPLATE/`](.github/ISSUE_TEMPLATE/). If you find a security issue, follow the process described in [SECURITY.md](.github/SECURITY.md) instead of opening a public issue.
 
 ---
 
-Hecho por **[Filonux](https://github.com/filonux)**.
+Made by **[Filonux](https://github.com/filonux)**.
