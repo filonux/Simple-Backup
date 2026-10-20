@@ -1,0 +1,103 @@
+# Publishes a GitHub release when a version tag is pushed:
+#
+#     git tag v1.2.3 && git push origin v1.2.3
+#
+# Guard rails, in order:
+#   1. the tag must look like vX.Y.Z (or vX.Y.Z-suffix for a pre-release) and
+#      match VERSION="..." in script/simple-backup.sh;
+#   2. the full CI (ShellCheck + tests + mutation tests, see ci.yml) must pass;
+#   3. only then the release is created, with the ready-to-run script and its
+#      SHA256SUMS attached. GitHub adds the source archives by itself.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check-tag:
+    name: Check tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      prerelease: ${{ steps.check.outputs.prerelease }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Tag must match VERSION in the script
+        id: check
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Tag '$TAG' must look like vX.Y.Z or vX.Y.Z-suffix"
+            exit 1
+          fi
+
+          mapfile -t found < <(sed -n 's/^VERSION="\([^"]*\)"$/\1/p' script/simple-backup.sh)
+          if (( ${#found[@]} != 1 )); then
+            echo "::error file=script/simple-backup.sh::Expected exactly one VERSION=\"...\" line, found ${#found[@]}"
+            exit 1
+          fi
+          if [[ "${found[0]}" != "${TAG#v}" ]]; then
+            echo "::error file=script/simple-backup.sh::Tag $TAG does not match VERSION=\"${found[0]}\" in the script. Bump VERSION (or retag) and try again."
+            exit 1
+          fi
+
+          prerelease=false
+          if [[ "$TAG" == *-* ]]; then prerelease=true; fi
+          echo "prerelease=$prerelease" >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG (script VERSION ${found[0]}, pre-release: $prerelease)"
+
+  ci:
+    name: CI
+    needs: check-tag
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish release
+    needs: [check-tag, ci]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write   # create the release and upload its assets
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.ref_name }}
+      PRERELEASE: ${{ needs.check-tag.outputs.prerelease }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build release assets
+        run: |
+          mkdir -p dist
+          install -m 0755 script/simple-backup.sh dist/simple-backup.sh
+          (cd dist && sha256sum simple-backup.sh > SHA256SUMS && sha256sum -c SHA256SUMS)
+
+      - name: Create (or refresh) the GitHub release
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Re-run of an already published tag: just refresh the assets.
+            echo "Release $TAG already exists; refreshing its assets."
+            gh release upload "$TAG" dist/simple-backup.sh dist/SHA256SUMS --clobber
+          else
+            args=(--title "Simple-Backup $TAG" --verify-tag --generate-notes)
+            if [[ "$PRERELEASE" == true ]]; then args+=(--prerelease); fi
+            gh release create "$TAG" dist/simple-backup.sh dist/SHA256SUMS "${args[@]}"
+          fi

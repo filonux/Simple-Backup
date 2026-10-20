@@ -1,0 +1,159 @@
+# Continuous integration: ShellCheck + test suite + mutation tests.
+#
+# This workflow is also reusable: release.yml calls it (workflow_call), so a
+# release can never be published from a commit that does not pass the very
+# same checks.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    # Weekly run (Mondays 05:17 UTC) to catch breakage caused by runner-image,
+    # bash or rsync updates even when nobody has pushed anything.
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels its previous run; runs on branches,
+# tags and schedules always finish.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    # An explicit shell makes GitHub use `bash -eo pipefail`, so a failure in
+    # `tests/test.sh | tee ...` is not hidden by the pipe.
+    shell: bash
+
+jobs:
+  lint:
+    name: ShellCheck
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends shellcheck
+          shellcheck --version
+
+      # The main script is clean at every severity: keep it that way.
+      - name: ShellCheck - main script (all severities)
+        run: shellcheck --severity=style script/simple-backup.sh
+
+      # The test fixtures only produce info-level notes (functions overridden
+      # on purpose, single-quoted snippets...); warnings and errors must stay at zero.
+      - name: ShellCheck - tests (warnings and errors)
+        run: shellcheck --severity=warning tests/test.sh tests/mutation.sh
+
+  test:
+    name: Tests (${{ matrix.os }}, LANG=${{ matrix.lang }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # Explicit images on purpose: `ubuntu-latest` is moving from 24.04 to
+        # 26.04 and CI should not change under our feet.
+        #   22.04 = oldest supported (bash 5.1)   24.04 = Linux Mint 22.x base
+        #   26.04 = next LTS (bash 5.3, rsync 3.4)
+        os: [ubuntu-22.04, ubuntu-24.04, ubuntu-26.04]
+        lang: [C.UTF-8]
+        include:
+          # The app switches to Spanish from the system locale: cover that path too.
+          - os: ubuntu-24.04
+            lang: es_ES.UTF-8
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # rsync is what the script drives; without it the script asks to install
+      # it interactively, so make sure it is there instead of relying on the image.
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends rsync
+
+      - name: Show tool versions
+        # sed (not head): with pipefail, `head -n 1` closes the pipe early and
+        # the writer dies with SIGPIPE (exit 141), failing the step at random.
+        run: |
+          bash --version | sed -n 1p
+          rsync --version | sed -n 1p
+          python3 --version
+          script --version
+
+      - name: Run test suite
+        timeout-minutes: 5
+        env:
+          LANG: ${{ matrix.lang }}
+        # Run from the repository root (the documentation checks use relative
+        # paths). The other locale variables are removed so that LANG is the
+        # one deciding the language, and stdin is closed so that a missing
+        # dependency fails fast instead of waiting for an answer.
+        run: |
+          env -u LC_ALL -u LC_MESSAGES -u LANGUAGE \
+            bash tests/test.sh </dev/null 2>&1 | tee "$RUNNER_TEMP/test-output.txt"
+
+      - name: Report results
+        if: always()
+        env:
+          TARGET: ${{ matrix.os }} / ${{ matrix.lang }}
+        run: |
+          out="$RUNNER_TEMP/test-output.txt"
+          [[ -s "$out" ]] || exit 0
+          {
+            printf '### Test suite - %s\n\n```\n' "$TARGET"
+            cat "$out"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Surface each failing test as an annotation on the run page.
+          grep '^not ok - ' "$out" | while IFS= read -r line; do
+            echo "::error title=Test failed::[$TARGET] ${line#not ok - }"
+          done || true
+
+  mutation:
+    name: Mutation tests
+    # Every mutant "dies" if the unmutated suite is already red, so only run
+    # this once the plain tests are green.
+    needs: test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends rsync
+
+      - name: Run mutation tests
+        timeout-minutes: 5
+        run: bash tests/mutation.sh </dev/null 2>&1 | tee "$RUNNER_TEMP/mutation-output.txt"
+
+      - name: Report results
+        if: always()
+        run: |
+          out="$RUNNER_TEMP/mutation-output.txt"
+          [[ -s "$out" ]] || exit 0
+          {
+            printf '### Mutation tests\n\n```\n'
+            cat "$out"
+            printf '```\n'
+          } >> "$GITHUB_STEP_SUMMARY"
